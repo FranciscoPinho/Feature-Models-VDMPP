@@ -1,0 +1,35 @@
+class FeatureModel
+types
+-- TODO Define types here
+values
+-- TODO Define values here
+instance variables
+private featureTree : set of Feature := {};
+--Invariants
+ -- cant have duplicate features
+inv not exists f1,f2 in set featureTree & f1.name=f2.name;
+
+-- CHECKS WHEN ADDING SUBFEATURES
+ -- a feature cannot be a subfeature of more than one feature(excluding in requires and excludes relationships)
+--inv forall f1,f2 in set featureTree & f1.getSubFeatures() <> f2.getSubFeatures();
+-- a feature cannot require  or exclude it's own subfeatures	
+--call feature.checkSubIntegrity()
+
+operations
+  public FeatureModel: () ==> FeatureModel
+  FeatureModel() == (return self)
+  post featureTree = {};
+  
+  public addFeature: Feature`FeatureName ==> ()
+  addFeature(fname) == 
+  (
+  	dcl f: Feature :=new Feature(fname);
+  	featureTree := featureTree union {f}
+  ) 
+  post card featureTree = card featureTree~ + 1
+ 
+functions
+-- TODO Define functiones here
+traces
+-- TODO Define Combinatorial Test Traces here
+end FeatureModel
