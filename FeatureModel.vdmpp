@@ -19,6 +19,7 @@ inv not exists f1,f2 in set featureTree & f1.name=f2.name and f1<>f2;
 --call F.notSubFeature(f1)
 
 operations
+--Constructor
   public FeatureModel: Feature`FeatureName ==> FeatureModel
   FeatureModel(root) == (
   addFeature(root);
@@ -27,7 +28,13 @@ operations
   )
   pre root<>""
   post card featureTree = 1;
-  
+--Selector  
+  public get: Feature`FeatureName ==> Feature
+  get(fname) == 
+  (
+  	return iota x in set featureTree & x.name=fname
+  );
+--Add Features  
   public addFeature: Feature`FeatureName ==> ()
   addFeature(fname) == 
   (
@@ -35,15 +42,37 @@ operations
   	featureTree := featureTree union {f}
   ) 
   post card featureTree = card featureTree~ + 1;
-  
-  public get: Feature`FeatureName ==> Feature
-  get(fname) == 
+  --Subfeatures
+  public addMandatorySub: Feature`FeatureName*Feature`FeatureName ==> ()
+  addMandatorySub(newF,targetF) == 
   (
-  	return iota x in set featureTree & x.name=fname
+  	addFeature(newF);
+		get(targetF).addMandatory(get(newF))
   ) 
- 
-functions
--- TODO Define functiones here
-traces
--- TODO Define Combinatorial Test Traces here
+ 	pre exists f1 in set featureTree & f1.name=targetF;
+ 	
+ 	public addOptionalSub: Feature`FeatureName*Feature`FeatureName ==> ()
+  addOptionalSub(newF,targetF) == 
+  (
+  	addFeature(newF);
+		get(targetF).addOptional(get(newF))
+  ) 
+ 	pre exists f1 in set featureTree & f1.name=targetF;
+ 	
+ 	public addOrSub: Feature`FeatureName*Feature`FeatureName ==> ()
+  addOrSub(newF,targetF) == 
+  (
+  	addFeature(newF);
+		get(targetF).addOr(get(newF))
+  ) 
+ 	pre exists f1 in set featureTree & f1.name=targetF;
+  
+  public addXorSub: Feature`FeatureName*Feature`FeatureName ==> ()
+  addXorSub(newF,targetF) == 
+  (
+  	addFeature(newF);
+		get(targetF).addXor(get(newF))
+  ) 
+ 	pre exists f1 in set featureTree & f1.name=targetF;
+  
 end FeatureModel

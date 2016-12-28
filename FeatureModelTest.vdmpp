@@ -4,7 +4,7 @@ types
 values
 -- TODO Define values here
 instance variables
--- TODO Define instance variables here
+	fm : FeatureModel := new FeatureModel("eshop");
 operations
 	
 	-- Simulates assertion checking by reducing it to pre-condition checking.
@@ -26,8 +26,20 @@ operations
   			IO`print(expected);
   			IO`println(")\n")
 		)
-	post expected = actual
-
+	post expected = actual;
+	
+  private testAddFeatures: () ==> ()
+    testAddFeatures() ==
+       (
+         	fm.addMandatorySub("Catalogue","eshop");
+          assertTrue(card fm.get("eshop").getSubFeatures() = 1);
+          IO`print(fm); 
+       );
+	 public static main: () ==> ()
+      main() ==
+     (
+       new FeatureModelTest().testAddFeatures();
+      );
 functions
 -- TODO Define functiones here
 traces

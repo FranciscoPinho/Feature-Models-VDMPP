@@ -9,16 +9,19 @@ instance variables
 public name : FeatureName;
 public optional : set of Feature := {};
 public mandatory : set of Feature := {};
-public orGroup : set of set of Feature :={};
-public xorGroup : set of set of Feature :={};
+public orGroup : set of Feature :={};
+public xorGroup : set of Feature :={};
 public requires : set of Feature :={};
 public excludes : set of Feature :={};
 private true_self: Feature;
 
---inv a feature cant contain itself in any of these sets
+--inv a feature cant contain itself as a subfeature
 --inv a feature cannot have duplicate subfeatures
-inv true_self not in set optional union mandatory union requires union excludes union dunion{orGroup,xorGroup};
-inv not exists f1,f2 in set optional union mandatory union dunion{orGroup,xorGroup} & f1=f2;
+--inv a feature cannot require or exclude itself
+
+inv not exists f in set optional union mandatory union xorGroup union orGroup & f=true_self;
+inv not exists f1,f2 in set optional union mandatory union xorGroup union orGroup & f1.name=f2.name and f1<>f2;
+inv forall f in set excludes union require & true_self<>f;
 
 operations
 -- create feature object with desired name
@@ -36,8 +39,39 @@ public getSubFeatures: () ==> set of Feature
 -- useful checks
 public notRequiredExcluded: Feature ==> bool
   notRequiredExcluded(f) == return forall f2 in set(requires union excludes) & f.name<>f2.name;
+
 public notSubFeature: Feature  ==> bool
 	notSubFeature(f) == return forall f2 in set self.getSubFeatures() & f.name<>f2.name;
+
+-- add subfeatures
+public addMandatory: Feature ==> ()
+	addMandatory(newF) == 
+	(
+		if notRequiredExcluded(newF) and notSubFeature(newF)
+		then mandatory:=mandatory union {newF}
+	);
+	
+public addOptional: Feature ==> ()
+	addOptional(newF) == 
+	(
+		if notRequiredExcluded(newF) and notSubFeature(newF)
+		then optional:=optional union {newF}
+	);
+	
+public addOr: Feature ==> ()
+	addOr(newF) == 
+	(
+		if notRequiredExcluded(newF) and notSubFeature(newF)
+		then orGroup:=orGroup union {newF}
+	);
+	
+public addXor: Feature ==> ()
+	addXor(newF) == 
+	(
+		if notRequiredExcluded(newF) and notSubFeature(newF)
+		then xorGroup:=xorGroup union {newF}
+	);	
+
 functions
 
 
