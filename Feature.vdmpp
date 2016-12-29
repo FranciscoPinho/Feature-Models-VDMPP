@@ -21,7 +21,7 @@ private true_self: Feature;
 
 inv not exists f in set optional union mandatory union xorGroup union orGroup & f=true_self;
 inv not exists f1,f2 in set optional union mandatory union xorGroup union orGroup & f1.name=f2.name and f1<>f2;
-inv forall f in set excludes union require & true_self<>f;
+inv forall f in set excludes union requires & true_self<>f;
 
 operations
 -- create feature object with desired name
