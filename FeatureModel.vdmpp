@@ -1,24 +1,15 @@
 class FeatureModel
 types
--- TODO Define types here
+public Configuration = set of Feature;
 values
 -- TODO Define values here
 instance variables
 public featureTree : set of Feature := {};
 private rootName : Feature`FeatureName;
+public allValidConfigurations : set of Configuration := {};
 --Invariants
  -- cant have duplicate features
- -- root feature cannot be named root - reserved word
 inv not exists f1,f2 in set featureTree & f1.name=f2.name and f1<>f2;
-
-
--- CHECKS WHEN ADDING SUBFEATURES
- -- a feature cannot be a subfeature of more than one feature(excluding in requires and excludes relationships)
---inv forall f1,f2 in set featureTree & f1.getSubFeatures() <> f2.getSubFeatures();
--- cannot add a subfeature sf to feature F if F already implies or requires said feature
--- call F.notRequiredExcluded(sf)
--- cannot require or exclude a feature f1 to F if it's already a subfeature of F	
---call F.notSubFeature(f1)
 
 operations
 --Constructor
@@ -52,7 +43,7 @@ operations
   	addFeature(newF);
 		get(targetF).addMandatory(get(newF));
 		get(newF).setParent(targetF);
-		calcIndegree(get(newF))
+		calcIndegree(get(newF));
   ) 
  	pre exists f1 in set featureTree & f1.name=targetF;
  	
@@ -98,26 +89,45 @@ operations
  public excludes: Feature`FeatureName*Feature`FeatureName ==> ()
   excludes(excludee,excluder) == 
   (
-		get(excluder).addRequire(get(excludee))
+  	if(excludee not in set get(rootName).mandatory)
+		then get(excluder).addExclude(get(excludee));
   ) 
  	pre exists f1,f2 in set featureTree & f1<>f2 and f1.name=excluder and f2.name=excludee
  	post card featureTree=card featureTree~;
  	
+ 	public removeExcludes: Feature`FeatureName*Feature`FeatureName ==> ()
+  	removeExcludes(excludee,excluder) == 
+  	(
+  		if(get(excludee) in set get(excluder).excludes)
+				then get(excluder).removeExclude(get(excludee))
+				else return;
+  	) 
+ 		pre exists f1,f2 in set featureTree & f1<>f2 and f1.name=excluder and f2.name=excludee;
+ 		
+ 	public removeRequires: Feature`FeatureName*Feature`FeatureName ==> ()
+  	removeRequires(requiree,requirer) == 
+  	(
+  		if(get(requiree) in set get(requirer).requires)
+				then get(requirer).removeRequire(get(requiree))
+				else return;
+  	) 
+ 		pre exists f1,f2 in set featureTree & f1<>f2 and f1.name=requirer and f2.name=requiree;	
+
  	--Indegree calculations
  	public calcIndegree: Feature ==> ()
-  calcIndegree(feature) == 
-  (
+  	calcIndegree(feature) == 
+  	(
 			if(feature.parent=rootName)
 			then feature.incIndegree()
 		 	else
 		 	(
 		 		calcIndegreeAux(get(feature.parent),feature)
 		 	)
-  ); 
+  	); 
   
 	public calcIndegreeAux: Feature*Feature ==> ()
-  calcIndegreeAux(parentF,original) == 
-  (
+  	calcIndegreeAux(parentF,original) == 
+  	(
   		original.incIndegree();
 			if(parentF.parent=rootName)
 			then original.incIndegree()
@@ -125,6 +135,63 @@ operations
 		 	(
 		 		calcIndegreeAux(get(parentF.parent),original)
 		 	)
-  );
+  	);
+	
+	
+  --Make configuration
+  public generateValidConfigs: () ==> ()
+  	generateValidConfigs() == 
+  	(
+  	
+ 		 		dcl config : Configuration := {};
+ 		 		config := config union {get(rootName)};
+ 		 		--for all subfeatures of root?
+ 		 		--switch case for kind of subfeature
+ 		 		-- config := dunion{config,{get(rootName)}}; OBSOLETE BY ABOVE MAYBE
+ 				printConfiguration(config);
+ 		 		--generateValidConfigsAux()
+ 		 		--if(checkConstraints()) then allValidConfigurations := allValidConfigurations union {config};
+ 	 );
+ 
+  --generateValidConfigsAux
+  public checkConstraints: Configuration*set of Feature ==> bool
+  	checkConstraints(config,mustRequire)==
+  	(
+  		-- not a valid configuration until required features are in the configuration
+  		if(mustRequire subset config=false)
+  		then return false;
+  		-- cannot exclude features that are already in the configuration
+  		for all f in set config 
+  		do
+  		( 
+  			if(f.excludes inter config <> {})
+  				then return false;
+  		);
+  		-- if all constraints are respected it's a valid configuration
+  		return true;
+  	);
   
+
+ 
+	--printing utilities 
+  public printConfiguration: Configuration ==> ()
+  	printConfiguration(config)==
+  	(
+  		for all f in set config 
+  		do (
+  		IO`println("-----Current Configuration-----");
+  		IO`println(f.name);
+  		IO`println("-----End of Current Configuration-----");
+  		);	
+  	 );
+  
+  public printAllConfigurations: () ==> ()
+  	printAllConfigurations()==
+  	(
+  		for all f in set allValidConfigurations 
+  		do (
+  			printConfiguration(f);
+  		);	
+  	 );
+  	 		
 end FeatureModel

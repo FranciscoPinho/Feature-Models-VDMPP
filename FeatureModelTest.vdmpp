@@ -35,13 +35,20 @@ operations
           fm.addMandatorySub("Listing","Catalogue");
           fm.addXorSub("paper","Catalogue");
           fm.addXorSub("digital","Catalogue");
-          fm.addOptionalSub("pdf","digital");
+          fm.addOptionalSub("powerpoint","digital");
+          fm.addMandatorySub("pdf","digital");
+          fm.addOptionalSub("xpp","digital");
+          fm.excludes("powerpoint","xpp");
           assertEqual(1,fm.get("Catalogue").indegree);
           assertEqual(2,fm.get("Listing").indegree);
           assertEqual(3,fm.get("pdf").indegree);
           IO`println(fm.get("pdf").indegree);
           IO`println(fm.get("paper").indegree);
-          IO`print(fm); 
+          IO`println(fm);
+          fm.generateValidConfigs();
+          if(card fm.allValidConfigurations=0)
+          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+          else fm.printAllConfigurations();
        );
 	 public static main: () ==> ()
       main() ==

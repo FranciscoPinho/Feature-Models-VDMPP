@@ -20,11 +20,10 @@ private true_self: Feature;
 --inv a feature cant contain itself as a subfeature
 --inv a feature cannot have duplicate subfeatures
 --inv a feature cannot require or exclude itself
---inv a feature cannot be it's own parent
 inv not exists f in set optional union mandatory union xorGroup union orGroup & f=true_self;
 inv not exists f1,f2 in set optional union mandatory union xorGroup union orGroup & f1.name=f2.name and f1<>f2;
 inv forall f in set excludes union requires & true_self<>f;
-inv parent<>name;
+
 
 
 operations
@@ -86,8 +85,8 @@ public addXor: Feature ==> ()
 		if notRequiredExcluded(newF) and notSubFeature(newF)
 		then xorGroup:=xorGroup union {newF}; 
 	);
-	
--- add excludes and requires
+
+-- add excludes and requires --remove exclude
 public addRequire: Feature ==> ()
 	addRequire(newRequires) == 
 	(
@@ -100,6 +99,7 @@ public addRequire: Feature ==> ()
 		)
 	)
 	pre newRequires not in set requires; 
+
 public addExclude: Feature ==> ()
 	addExclude(newExclude) == 
 	(
@@ -112,7 +112,21 @@ public addExclude: Feature ==> ()
 			excludes:=excludes union {newExclude};
 		) 
 	)
-	pre newExclude not in set excludes; 
+	pre newExclude not in set excludes;
+ 
+ public removeExclude: Feature ==> ()
+	removeExclude(cancelExclusion) == 
+	(
+		excludes:=excludes \ {cancelExclusion};
+	)
+	pre cancelExclusion in set excludes;
+	
+ public removeRequire: Feature ==> ()
+	removeRequire(cancelRequire) == 
+	(
+		requires:=requires \ {cancelRequire};
+	)
+	pre cancelRequire in set requires;   
 
 traces
 -- TODO Define Combinatorial Test Traces here
