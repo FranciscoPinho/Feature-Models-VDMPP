@@ -4,7 +4,7 @@ types
 values
 -- TODO Define values here
 instance variables
-	fm : FeatureModel := new FeatureModel("eshop");
+	fm : FeatureModel := new FeatureModel("root");
 operations
 	
 	-- Simulates assertion checking by reducing it to pre-condition checking.
@@ -28,32 +28,57 @@ operations
 		)
 	post expected = actual;
 	
-  private testAddFeatures: () ==> ()
-    testAddFeatures() ==
+  private testMakeModel: () ==> ()
+    testMakeModel() ==
        (
-         	fm.addMandatorySub("Catalogue","eshop");
-          fm.addMandatorySub("Listing","Catalogue");
-          fm.addXorSub("paper","Catalogue");
-          fm.addXorSub("digital","Catalogue");
-          fm.addOptionalSub("powerpoint","digital");
-          fm.addMandatorySub("pdf","digital");
-          fm.addOptionalSub("xpp","digital");
-          fm.excludes("powerpoint","xpp");
-          assertEqual(1,fm.get("Catalogue").indegree);
-          assertEqual(2,fm.get("Listing").indegree);
-          assertEqual(3,fm.get("pdf").indegree);
-          IO`println(fm.get("pdf").indegree);
-          IO`println(fm.get("paper").indegree);
-          IO`println(fm);
-          fm.generateValidConfigs();
+         	fm.addMandatorySub("0","root");
+          fm.addXorSub("1","root");
+          fm.addXorSub("2","root");
+          fm.addOrSub("3","root");
+          fm.addOrSub("4","root");
+          fm.addOptionalSub("5","root");
+          fm.addOptionalSub("6","5");
+        	fm.generateValidConfigs();
           if(card fm.allValidConfigurations=0)
           then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
-          else fm.printAllConfigurations();
+          else (
+         	IO`println("|!|!|!|PRINTING ALL THE VALID CONFIGS|!|!|!|");
+          IO`println("|!|!|!|END PRINTING ALL THE VALID CONFIGS|!|!|!|");
+          );
        );
+   private testGenerateValidConfigs: () ==> ()
+  	  testGenerateValidConfigs() ==
+       (
+        	dcl orGroupOptionstwo : set of set of seq1 of char := {{}};
+        	dcl orGroupOptions : set of set of seq1 of char := {{}};
+        	dcl retValue : set of set of seq1 of char := {{}};
+       		orGroupOptionstwo:={{"f4","f5"}};
+       		orGroupOptions:=power{"f1","f2","f3"};
+	
+			for all p1 in set orGroupOptions
+			do
+			(
+				for all p2 in set orGroupOptionstwo
+				do
+				(
+					retValue:=retValue union {p1 union p2};
+				);
+			);
+      
+       	
+       		for all f in set retValue
+       		do (
+       			IO`println(f);
+       		);
+      
+         	
+       );   
+       
 	 public static main: () ==> ()
       main() ==
      (
-       new FeatureModelTest().testAddFeatures();
+     	-- new FeatureModelTest().testGenerateValidConfigs();
+       new FeatureModelTest().testMakeModel();
       );
 functions
 -- TODO Define functiones here

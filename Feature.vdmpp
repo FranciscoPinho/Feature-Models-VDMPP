@@ -36,7 +36,11 @@ public Feature : FeatureName ==> Feature
 	);
 -- return set of all subfeatures in mandatory,optional,orgroup e xorgroup
 public getSubFeatures: () ==> set of Feature
-	getSubFeatures() == return self.mandatory union self.optional union dunion{self.orGroup,self.xorGroup}
+	getSubFeatures() == return mandatory union optional union orGroup union xorGroup
+	post true_self=true_self~;
+	
+public hasMandatory: () ==> bool
+	hasMandatory() == return card mandatory>0
 	post true_self=true_self~;
 -- setter	
 public setParent: FeatureName ==> ()
