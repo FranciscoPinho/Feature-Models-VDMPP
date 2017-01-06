@@ -1,0 +1,434 @@
+class FeatureModel
+types
+public Configuration = set of Feature;
+values
+-- TODO Define values here
+instance variables
+public featureTree : set of Feature := {};
+private rootName : Feature`FeatureName;
+public allValidConfigurations : set of Configuration := {{}};
+--Invariants
+ -- cant have duplicate features
+inv not exists f1,f2 in set featureTree & f1.name=f2.name and f1<>f2;
+
+operations
+--Constructor
+  public FeatureModel: Feature`FeatureName ==> FeatureModel
+  FeatureModel(root) == (
+  addFeature(root);
+  rootName:=root;
+  return self
+  )
+  pre root<>""
+  post card featureTree = 1;
+--Selector  
+  public get: Feature`FeatureName ==> Feature
+  get(fname) == 
+  (
+  	return iota x in set featureTree & x.name=fname
+  )
+  pre exists  x in set featureTree & x.name=fname;
+
+--Add Features to featureTree  
+  public addFeature: Feature`FeatureName ==> ()
+  addFeature(fname) == 
+  (
+  	dcl f: Feature :=new Feature(fname);
+  	featureTree := featureTree union {f}
+  ) 
+  post card featureTree = card featureTree~ + 1;
+  
+  --Add Subfeatures to a feature
+  public addMandatorySub: Feature`FeatureName*Feature`FeatureName ==> ()
+  addMandatorySub(newF,targetF) == 
+  (
+  	addFeature(newF);
+		get(targetF).addMandatory(get(newF));
+		get(newF).setParent(targetF);
+		calcIndegree(get(newF));
+  ) 
+ 	pre exists f1 in set featureTree & f1.name=targetF;
+ 	
+ 	public addOptionalSub: Feature`FeatureName*Feature`FeatureName ==> ()
+  addOptionalSub(newF,targetF) == 
+  (
+  	addFeature(newF);
+		get(targetF).addOptional(get(newF));
+		get(newF).setParent(targetF);
+		calcIndegree(get(newF))
+  ) 
+ 	pre exists f1 in set featureTree & f1.name=targetF;
+ 	
+ 	public addOrSub: Feature`FeatureName*Feature`FeatureName ==> ()
+  addOrSub(newF,targetF) == 
+  (
+  	addFeature(newF);
+		get(targetF).addOr(get(newF));
+		get(newF).setParent(targetF);
+		calcIndegree(get(newF))
+  ) 
+ 	pre exists f1 in set featureTree & f1.name=targetF;
+  
+  public addXorSub: Feature`FeatureName*Feature`FeatureName ==> ()
+  addXorSub(newF,targetF) == 
+  (
+  	addFeature(newF);
+		get(targetF).addXor(get(newF));
+		get(newF).setParent(targetF);
+		calcIndegree(get(newF))
+  ) 
+ 	pre exists f1 in set featureTree & f1.name=targetF;
+ 
+ 	-- requires and excludes relationships
+ public requires: Feature`FeatureName*Feature`FeatureName ==> ()
+  requires(requiree,requirer) == 
+  (
+		get(requirer).addRequire(get(requiree))
+  ) 
+ 	pre exists f1,f2 in set featureTree & f1<>f2 and f1.name=requirer and f2.name=requiree
+ 	post card featureTree=card featureTree~;
+ 	
+ public excludes: Feature`FeatureName*Feature`FeatureName ==> ()
+  excludes(excludee,excluder) == 
+  (
+  	if(get(excludee) not in set get(rootName).mandatory)
+		then get(excluder).addExclude(get(excludee));
+  ) 
+ 	pre exists f1,f2 in set featureTree & f1<>f2 and f1.name=excluder and f2.name=excludee
+ 	post card featureTree=card featureTree~;
+ 	
+ 	public removeExcludes: Feature`FeatureName*Feature`FeatureName ==> ()
+  	removeExcludes(excludee,excluder) == 
+  	(
+  		if(get(excludee) in set get(excluder).excludes)
+				then get(excluder).removeExclude(get(excludee))
+				else return;
+  	) 
+ 		pre exists f1,f2 in set featureTree & f1<>f2 and f1.name=excluder and f2.name=excludee;
+ 		
+ 	public removeRequires: Feature`FeatureName*Feature`FeatureName ==> ()
+  	removeRequires(requiree,requirer) == 
+  	(
+  		if(get(requiree) in set get(requirer).requires)
+				then get(requirer).removeRequire(get(requiree))
+				else return;
+  	) 
+ 		pre exists f1,f2 in set featureTree & f1<>f2 and f1.name=requirer and f2.name=requiree;	
+
+ 	--Indegree calculations
+ 	public calcIndegree: Feature ==> ()
+  	calcIndegree(feature) == 
+  	(
+			if(feature.parent=rootName)
+			then feature.incIndegree()
+		 	else
+		 	(
+		 		calcIndegreeAux(get(feature.parent),feature)
+		 	)
+  	); 
+  
+	public calcIndegreeAux: Feature*Feature ==> ()
+  	calcIndegreeAux(parentF,original) == 
+  	(
+  		original.incIndegree();
+			if(parentF.parent=rootName)
+			then original.incIndegree()
+		 	else
+		 	(
+		 		calcIndegreeAux(get(parentF.parent),original)
+		 	)
+  	);
+	
+	
+  --Generates configurations up the first level of the tree
+  --will calll generateValidConfigsAux for each of the possible configurations
+  --alongside their mustRequire(feature required by some feature in that configuration)
+  --and mustProcess(subfeatures with subfeatures that must be processed in order to make 
+  --a valid feature)
+  public generateValidConfigs: () ==> ()
+  	generateValidConfigs() == 
+  	(
+  		
+ 		 		dcl currentConfigs: set of Configuration:= {{get(rootName)}};
+ 		 		dcl orGroupOptions : set of Configuration:= {{}};
+ 		 		dcl xorGroupOptions : set of Configuration:= {{}};
+ 		 		dcl mandatoryGroup : set of Configuration:= {{}};
+ 		 		dcl optionalOptions : set of Configuration:= {{}};
+ 		 		allValidConfigurations:= {{}};
+ 		 		
+ 		 		if(card get(rootName).xorGroup <> 0)
+ 		 		then
+ 		 		(
+ 		 			for all f in set get(rootName).xorGroup
+ 		 			do
+ 		 			(
+ 		 				xorGroupOptions:=xorGroupOptions union {{f}};
+ 		 			);
+ 		 			xorGroupOptions := xorGroupOptions \ {{}};
+ 		 			currentConfigs:=combinePossibilities(currentConfigs,xorGroupOptions);
+ 		 		);
+ 		 		
+ 		 			 	
+ 		 		if(card get(rootName).orGroup <> 0)
+ 		 		then
+ 		 		(
+ 		 			orGroupOptions:=power get(rootName).orGroup;
+ 		 			orGroupOptions:=orGroupOptions \ {{}};
+ 		 			currentConfigs:=combinePossibilities(currentConfigs,orGroupOptions);
+ 		 		);
+ 		 		
+ 		 		
+ 		 		if(card get(rootName).mandatory <> 0)
+ 		 		then
+ 		 		(
+ 		 			for all f in set get(rootName).mandatory
+ 		 				do
+ 		 				(
+ 		 					mandatoryGroup:=mandatoryGroup union {{f}};
+ 		 				);
+ 		 			mandatoryGroup := mandatoryGroup \ {{}};
+ 		 			currentConfigs:=combinePossibilities(currentConfigs,mandatoryGroup);	
+ 		 		);
+ 		 		
+ 		 		
+ 		 		if(card get(rootName).optional <> 0)
+ 		 		then
+ 		 		(
+ 		 			optionalOptions:=power get(rootName).optional;
+ 		 			currentConfigs:=combinePossibilities(currentConfigs,optionalOptions);
+ 		 		);
+ 		 		
+ 		 		
+ 		
+ 		 		for all config in set currentConfigs
+ 		 		do
+ 		 		(
+ 		 			dcl mustRequire: set of Feature:={}; 
+ 		 			dcl mustProcess: set of Feature:={};
+ 		 			for all f in set config
+ 		 			do
+ 		 			(
+ 		 				if(f.name<>rootName)
+ 		 					then
+ 		 					(
+ 		 						if(card f.requires>0)
+ 		 							then
+ 									(
+ 		 								mustRequire:= mustRequire union f.requires;
+ 		 								);
+ 								if(card f.getSubFeatures()>0)
+ 	 								then
+ 	 								(
+	 									mustProcess:= mustProcess union {f};
+ 		 							);
+ 		 					);
+ 		 			);
+ 		 			generateValidConfigsAux(config,mustRequire,mustProcess);
+ 		 		);
+ 	 );
+ 	 
+ 	-- receives a configuration and recursively goes through the remaining levels of death
+ 	-- initially checks if the configuration received is valid and adds it to the set of
+ 	-- all valid configurations of the model, returns when there are no more subfeatures to
+ 	-- process or the configuration was already deemed valid
+  private generateValidConfigsAux: Configuration*set of Feature*set of Feature ==> ()
+  	generateValidConfigsAux(config,mustRequire,mustProcess)==
+  	(
+  		dcl currentConfigs: set of Configuration:= {{}};
+  		dcl firstProcess: int:=0;
+  		if(checkConstraints(config,mustRequire,mustProcess))
+  		then
+  		(
+  			allValidConfigurations := allValidConfigurations union {config};
+  			allValidConfigurations := allValidConfigurations \ {{}};
+  			return;
+  		);
+  		
+  		if(card mustProcess=0)
+  		then return;
+  		
+  		
+  		for all p in set mustProcess
+  		do
+  		(
+  			if(firstProcess=0)
+  			then
+  			(
+  				currentConfigs:= currentConfigs union generateValidConfigsCompute(config,p);
+  				currentConfigs:= currentConfigs \ {{}};
+  			)
+  			else
+  			(
+  				currentConfigs:= combinePossibilities(currentConfigs,generateValidConfigsCompute(config,p));
+  				currentConfigs:= currentConfigs \ {{}};
+  			);
+  			firstProcess:=firstProcess+1;
+  		);
+  		
+  
+  		for all conf in set currentConfigs
+ 		 		do
+ 		 		(
+ 		 			dcl newMustRequire: set of Feature:={}; 
+ 		 			dcl newMustProcess: set of Feature:={};
+ 		 			
+ 		 			for all f in set conf
+ 		 			do
+ 		 			(
+ 		 				if(f.name<>rootName)
+ 		 					then
+ 		 					(
+ 		 						if(card f.requires>0 and f not in set mustRequire)
+ 		 							then
+ 		 							(
+ 		 								newMustRequire:= newMustRequire union f.requires;
+ 		 							);
+ 								if(card f.getSubFeatures()>0 and f not in set mustProcess)
+ 		 							then
+ 		 							(
+ 		 								newMustProcess:= newMustProcess union {f};
+ 		 							);
+ 		 					); 
+ 		 				generateValidConfigsAux(conf,newMustRequire union mustRequire,newMustProcess);
+ 		 		);
+  	); 
+  );
+  -- used to computer all the possible configurations based on an existing configuration
+  -- and a feature to process to add to the existing configuration
+  private generateValidConfigsCompute:Configuration*Feature==>set of set of Feature
+  	generateValidConfigsCompute(conf,toProcess)==
+  	(
+  			dcl currentConfigs: set of Configuration:= {conf};
+ 		 		dcl orGroupOptions : set of Configuration:= {{}};
+ 		 		dcl xorGroupOptions : set of Configuration:= {{}};
+ 		 		dcl mandatoryGroup : set of Configuration:= {{}};
+ 		 		dcl optionalOptions : set of Configuration:= {{}};
+		 		
+ 		 		if(card toProcess.xorGroup <> 0)
+ 		 		then
+ 		 		(
+ 		 			for all f in set toProcess.xorGroup
+ 		 			do
+ 		 			(
+ 		 				xorGroupOptions:=xorGroupOptions union {{f}};
+ 		 			);
+ 		 			xorGroupOptions := xorGroupOptions \ {{}};
+ 		 			currentConfigs:=combinePossibilities(currentConfigs,xorGroupOptions);
+ 		 		);
+ 		 		
+ 		 		
+ 		 		if(card toProcess.orGroup <> 0)
+ 		 		then
+ 		 		(
+ 		 			orGroupOptions:=power toProcess.orGroup;
+ 		 			orGroupOptions:=orGroupOptions \ {{}};
+ 		 			currentConfigs:=combinePossibilities(currentConfigs,orGroupOptions);
+ 		 		);
+ 		 	
+ 		 		if(card toProcess.mandatory <> 0)
+ 		 		then
+ 		 		(
+ 		 			for all f in set toProcess.mandatory
+ 		 			do
+ 		 			(
+ 		 				mandatoryGroup:=mandatoryGroup union {{f}};
+ 		 			);
+ 		 			mandatoryGroup := mandatoryGroup \ {{}};
+ 		 			currentConfigs:=combinePossibilities(currentConfigs,mandatoryGroup);
+ 		 		);
+ 		 	
+ 		 		if(card toProcess.optional <> 0)
+ 		 		then
+ 		 		(
+ 		 			optionalOptions:=power toProcess.optional;
+ 		 			currentConfigs:=combinePossibilities(currentConfigs,optionalOptions);
+ 		 		);
+ 		 		
+ 		 		
+ 		 		return currentConfigs;
+  	);
+
+
+  public checkConstraints: Configuration*set of Feature*set of Feature ==> bool
+  	checkConstraints(config,mustRequire,mustProcess)==
+  	(
+  		--not a valid configuration until all nodes are processed
+  		if(card mustProcess >0)
+  		then return false;
+  		-- not a valid configuration until required features are in the configuration
+  		if(not mustRequire subset config)
+  		then return false;
+  		-- cannot exclude features that are already in the configuration
+  		for all f in set config 
+  		do
+  		( 
+  			if(f.excludes inter config <> {})
+  				then return false;
+  		);
+  		-- if all constraints are respected it's a valid configuration
+  		return true;
+  	);
+  
+	public combinePossibilities : set of set of Feature*set of set of Feature==>set of set of Feature
+		combinePossibilities(poss1,poss2)==
+		(
+			dcl retValue : set of set of Feature := {{}};
+			for all ps in set poss1
+			do
+			(
+				for all ps2 in set poss2
+				do
+				(
+					retValue:=retValue union {ps union ps2};
+				);
+			);
+			retValue:=retValue \ {{}};
+			return retValue;
+		);
+ 
+ 
+ 	--make configuration
+ 	public makeConfiguration: set of Feature`FeatureName ==> bool
+ 		makeConfiguration(list)==
+ 		(
+ 			dcl getFeaturesFromName: Configuration := {};
+ 			for all e in set list
+ 			do
+ 			(
+ 				getFeaturesFromName:=getFeaturesFromName union {get(e)};
+ 			);
+ 			if(getFeaturesFromName in set allValidConfigurations)
+ 			then return true
+ 			else return false;
+ 		)
+ 		pre card allValidConfigurations>0;
+	
+	--printing utilities mostly for debugging purposes
+  public printConfiguration: Configuration ==> ()
+  	printConfiguration(config)==
+  	(
+  		IO`println("-----Current Configuration-----");
+  		for all f in set config 
+  		do (
+  		IO`println(f.name);
+  		);
+  		IO`println("-----End of Current Configuration-----");	
+  	 );
+   public printCombinations: set of Configuration ==> ()
+  	printCombinations(configs)==
+  	(
+  		for all c in set configs 
+  		do (
+  			printConfiguration(c);
+  		);	
+  	 );
+  public printAllConfigurations: () ==> ()
+  	printAllConfigurations()==
+  	(
+  		for all f in set allValidConfigurations 
+  		do (
+  			printConfiguration(f);
+  		);	
+  	 );
+ 	 		
+end FeatureModel

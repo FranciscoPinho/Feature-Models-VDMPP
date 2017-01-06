@@ -1,0 +1,134 @@
+class Feature
+types
+
+public FeatureName = seq1 of char;
+
+values
+-- TODO Define values here
+instance variables
+public name : FeatureName;
+public parent : seq of char := "";
+public indegree : int := 0;
+public optional : set of Feature := {};
+public mandatory : set of Feature := {};
+public orGroup : set of Feature :={};
+public xorGroup : set of Feature :={};
+public requires : set of Feature :={};
+public excludes : set of Feature :={};
+private true_self: Feature;
+
+--inv a feature cant contain itself as a subfeature
+--inv a feature cannot have duplicate subfeatures
+--inv a feature cannot require or exclude itself
+inv not exists f in set optional union mandatory union xorGroup union orGroup & f=true_self;
+inv not exists f1,f2 in set optional union mandatory union xorGroup union orGroup & f1.name=f2.name and f1<>f2;
+inv forall f in set excludes union requires & true_self<>f;
+
+
+
+operations
+-- create feature object with desired name
+public Feature : FeatureName ==> Feature
+	Feature(nm) == (
+		name := nm;
+		true_self := self;
+		return self
+	);
+-- return set of all subfeatures in mandatory,optional,orgroup e xorgroup
+public getSubFeatures: () ==> set of Feature
+	getSubFeatures() == return mandatory union optional union orGroup union xorGroup
+	post true_self=true_self~;
+	
+-- setter	
+public setParent: FeatureName ==> ()
+	setParent(pname) == 
+	(
+		parent:=pname;
+	);
+	
+public incIndegree: () ==> ()
+	incIndegree() == 
+	(
+		indegree:=indegree+1;
+	);	
+-- useful checks
+public notRequiredExcluded: Feature ==> bool
+  notRequiredExcluded(f) == return forall f2 in set(requires union excludes) & f.name<>f2.name;
+
+public notSubFeature: Feature  ==> bool
+	notSubFeature(f) == return forall f2 in set self.getSubFeatures() & f.name<>f2.name;
+
+-- add subfeatures
+public addMandatory: Feature ==> ()
+	addMandatory(newF) == 
+	(
+		if notRequiredExcluded(newF) and notSubFeature(newF)
+		then mandatory:=mandatory union {newF}; 
+	);
+	
+public addOptional: Feature ==> ()
+	addOptional(newF) == 
+	(
+		if notRequiredExcluded(newF) and notSubFeature(newF)
+		then optional:=optional union {newF};	
+	);
+	
+public addOr: Feature ==> ()
+	addOr(newF) == 
+	(
+		if notRequiredExcluded(newF) and notSubFeature(newF)
+		then orGroup:=orGroup union {newF};
+	);
+	
+public addXor: Feature ==> ()
+	addXor(newF) == 
+	(
+		if notRequiredExcluded(newF) and notSubFeature(newF)
+		then xorGroup:=xorGroup union {newF}; 
+	);
+
+-- add excludes and requires --remove exclude
+public addRequire: Feature ==> ()
+	addRequire(newRequires) == 
+	(
+		if notSubFeature(newRequires)
+		then 
+		(
+			if newRequires in set excludes
+			then excludes:=excludes \ {newRequires};
+			requires:=requires union {newRequires}; 
+		)
+	)
+	pre newRequires not in set requires; 
+
+public addExclude: Feature ==> ()
+	addExclude(newExclude) == 
+	(
+		
+		if notSubFeature(newExclude)
+		then 
+		(
+			if newExclude in set requires
+			then requires:=requires \ {newExclude};
+			excludes:=excludes union {newExclude};
+		) 
+	)
+	pre newExclude not in set excludes;
+ 
+ public removeExclude: Feature ==> ()
+	removeExclude(cancelExclusion) == 
+	(
+		excludes:=excludes \ {cancelExclusion};
+	)
+	pre cancelExclusion in set excludes;
+	
+ public removeRequire: Feature ==> ()
+	removeRequire(cancelRequire) == 
+	(
+		requires:=requires \ {cancelRequire};
+	)
+	pre cancelRequire in set requires;   
+
+traces
+-- TODO Define Combinatorial Test Traces here
+end Feature

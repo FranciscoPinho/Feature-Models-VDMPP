@@ -1,0 +1,144 @@
+class FeatureModelTest
+types
+-- TODO Define types here
+values
+-- TODO Define values here
+instance variables
+	fm : FeatureModel := new FeatureModel("root");
+operations
+	
+	-- Simulates assertion checking by reducing it to pre-condition checking.
+	-- If 'arg' does not hold, a pre-condition violation will be signaled.
+	protected assertTrue: bool ==> ()
+	assertTrue(arg) == 
+		return 
+	pre arg;
+  
+	-- Simulates assertion checking by reducing it to post-condition checking.
+	-- If values are not equal, prints a message in the console and generates 
+	-- a post-conditions violation.
+	protected assertEqual: ? * ? ==> ()
+	assertEqual(expected, actual) == 
+		if expected <> actual then (
+  			IO`print("Actual value (");
+  			IO`print(actual); 
+  			IO`print(") different from expected (");
+  			IO`print(expected);
+  			IO`println(")\n")
+		)
+	post expected = actual;
+	
+  private testMakeModel: () ==> ()
+    testMakeModel() ==
+       (
+         	fm.addMandatorySub("0","root");
+          fm.addXorSub("1","root");
+          fm.addXorSub("2","root");
+          fm.addOrSub("3","root");
+          fm.addOrSub("4","root");
+          fm.addOptionalSub("5","root");
+          fm.addOptionalSub("6","5");
+          fm.addXorSub("7","0");
+          fm.addXorSub("8","0");
+          fm.requires("8","3");
+          fm.excludes("8","4");
+          assertTrue(card fm.get("root").getSubFeatures()=6);          
+       );
+   private testGenerateValidConfigs: () ==> ()
+  	  testGenerateValidConfigs() ==
+       (
+         	fm.addMandatorySub("0","root");
+          fm.addXorSub("1","root");
+          fm.addXorSub("2","root");
+          fm.addOrSub("3","root");
+          fm.addOrSub("4","root");
+          fm.addOptionalSub("5","root");
+          fm.addOptionalSub("6","5");
+          fm.addXorSub("7","0");
+          fm.addXorSub("8","0");
+          fm.requires("8","3");
+          fm.excludes("8","4");
+        fm.generateValidConfigs();
+      	if(card fm.allValidConfigurations=0)
+          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+          else (
+         	IO`println("|!|!|!|PRINTING ALL THE VALID CONFIGS|!|!|!|");
+         	fm.printAllConfigurations();
+         	assertEqual(12,card fm.allValidConfigurations);
+          IO`println("|!|!|!|END PRINTING ALL THE VALID CONFIGS|!|!|!|");
+          );   	
+       );
+    private testRemoveRequiresExcludes: () ==> ()
+  	  testRemoveRequiresExcludes() ==
+       (
+        fm.addMandatorySub("0","root");
+        fm.addXorSub("1","root");
+        fm.addXorSub("2","root");
+        fm.addOrSub("3","root");
+        fm.addOrSub("4","root");
+        fm.addOptionalSub("5","root");
+        fm.addOptionalSub("6","5");
+        fm.addXorSub("7","0");
+        fm.addXorSub("8","0");
+        fm.requires("8","3");
+        fm.excludes("8","4");
+       	fm.removeRequires("8","3");
+        fm.removeExcludes("8","4");
+        
+        fm.generateValidConfigs();
+      	if(card fm.allValidConfigurations=0)
+          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+          else (
+         	assertEqual(36,card fm.allValidConfigurations);
+          );   	
+       );
+     
+     private testMakeConfiguration: () ==> ()
+  	  testMakeConfiguration() ==
+       (
+        fm.addMandatorySub("0","root");
+        fm.addXorSub("1","root");
+        fm.addXorSub("2","root");
+        fm.addOrSub("3","root");
+        fm.addOrSub("4","root");
+        fm.addOptionalSub("5","root");      
+        fm.generateValidConfigs();
+      	if(card fm.allValidConfigurations=0)
+          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+          else (
+         	assertEqual(12,card fm.allValidConfigurations);
+          );
+ 				assertTrue(fm.makeConfiguration({"root","0","1","3","5"}));
+ 				assertTrue(fm.makeConfiguration({"root","0","1","3"}));
+ 				assertTrue(not fm.makeConfiguration({"root","0","1","2"}));    	
+       ); 
+       
+     private testIndegreeCalculation: () ==> ()
+  	  testIndegreeCalculation() ==
+       (
+        fm.addMandatorySub("1","root");
+        fm.addXorSub("1.2","1");
+        fm.addOptionalSub("1.2.3","1.2");
+        fm.addOrSub("1.2.3.4","1.2.3");     
+ 				assertTrue(fm.get("1.2.3.4").indegree=4);
+ 				assertTrue(fm.get("1.2.3").indegree=3);
+ 				assertTrue(fm.get("1.2").indegree=2);
+ 				assertTrue(fm.get("1").indegree=1);
+ 				assertTrue(fm.get("root").indegree=0);				
+       );    
+              
+       
+	 public static main: () ==> ()
+      main() ==
+     (
+     	 new FeatureModelTest().testIndegreeCalculation();
+       new FeatureModelTest().testMakeModel();
+       new FeatureModelTest().testGenerateValidConfigs();
+       new FeatureModelTest().testRemoveRequiresExcludes();
+       new FeatureModelTest().testMakeConfiguration();
+      );
+functions
+-- TODO Define functiones here
+traces
+-- TODO Define Combinatorial Test Traces here
+end FeatureModelTest
