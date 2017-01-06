@@ -38,11 +38,17 @@ operations
           fm.addOrSub("4","root");
           fm.addOptionalSub("5","root");
           fm.addOptionalSub("6","5");
+          fm.addXorSub("7","0");
+          fm.addXorSub("8","0");
+          fm.requires("8","3");
+          fm.excludes("8","4");
         	fm.generateValidConfigs();
           if(card fm.allValidConfigurations=0)
           then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
           else (
          	IO`println("|!|!|!|PRINTING ALL THE VALID CONFIGS|!|!|!|");
+         	fm.printAllConfigurations();
+         	assertEqual(24,card fm.allValidConfigurations);
           IO`println("|!|!|!|END PRINTING ALL THE VALID CONFIGS|!|!|!|");
           );
        );
