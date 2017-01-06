@@ -39,9 +39,6 @@ public getSubFeatures: () ==> set of Feature
 	getSubFeatures() == return mandatory union optional union orGroup union xorGroup
 	post true_self=true_self~;
 	
-public hasMandatory: () ==> bool
-	hasMandatory() == return card mandatory>0
-	post true_self=true_self~;
 -- setter	
 public setParent: FeatureName ==> ()
 	setParent(pname) == 

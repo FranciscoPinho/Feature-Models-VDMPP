@@ -106,10 +106,11 @@ operations
       	if(card fm.allValidConfigurations=0)
           then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
           else (
-         	assertEqual(6,card fm.allValidConfigurations);
+         	assertEqual(12,card fm.allValidConfigurations);
           );
- 				fm.makeConfiguration({"0","1","3","5"});
- 				fm.makeConfiguration({"0","1","3","5"});    	
+ 				assertTrue(fm.makeConfiguration({"root","0","1","3","5"}));
+ 				assertTrue(fm.makeConfiguration({"root","0","1","3"}));
+ 				assertTrue(not fm.makeConfiguration({"root","0","1","2"}));    	
        );     
               
        
