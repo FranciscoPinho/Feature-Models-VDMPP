@@ -42,49 +42,84 @@ operations
           fm.addXorSub("8","0");
           fm.requires("8","3");
           fm.excludes("8","4");
-        	fm.generateValidConfigs();
-          if(card fm.allValidConfigurations=0)
-          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
-          else (
-         	IO`println("|!|!|!|PRINTING ALL THE VALID CONFIGS|!|!|!|");
-         	fm.printAllConfigurations();
-         	assertEqual(24,card fm.allValidConfigurations);
-          IO`println("|!|!|!|END PRINTING ALL THE VALID CONFIGS|!|!|!|");
-          );
+          assertTrue(card fm.get("root").getSubFeatures()=6);          
        );
    private testGenerateValidConfigs: () ==> ()
   	  testGenerateValidConfigs() ==
        (
-        	dcl orGroupOptionstwo : set of set of seq1 of char := {{}};
-        	dcl orGroupOptions : set of set of seq1 of char := {{}};
-        	dcl retValue : set of set of seq1 of char := {{}};
-       		orGroupOptionstwo:={{"f4","f5"}};
-       		orGroupOptions:=power{"f1","f2","f3"};
-	
-			for all p1 in set orGroupOptions
-			do
-			(
-				for all p2 in set orGroupOptionstwo
-				do
-				(
-					retValue:=retValue union {p1 union p2};
-				);
-			);
-      
-       	
-       		for all f in set retValue
-       		do (
-       			IO`println(f);
-       		);
-      
-         	
-       );   
+         	fm.addMandatorySub("0","root");
+          fm.addXorSub("1","root");
+          fm.addXorSub("2","root");
+          fm.addOrSub("3","root");
+          fm.addOrSub("4","root");
+          fm.addOptionalSub("5","root");
+          fm.addOptionalSub("6","5");
+          fm.addXorSub("7","0");
+          fm.addXorSub("8","0");
+          fm.requires("8","3");
+          fm.excludes("8","4");
+        fm.generateValidConfigs();
+      	if(card fm.allValidConfigurations=0)
+          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+          else (
+         	IO`println("|!|!|!|PRINTING ALL THE VALID CONFIGS|!|!|!|");
+         	fm.printAllConfigurations();
+         	assertEqual(12,card fm.allValidConfigurations);
+          IO`println("|!|!|!|END PRINTING ALL THE VALID CONFIGS|!|!|!|");
+          );   	
+       );
+    private testRemoveRequiresExcludes: () ==> ()
+  	  testRemoveRequiresExcludes() ==
+       (
+        fm.addMandatorySub("0","root");
+        fm.addXorSub("1","root");
+        fm.addXorSub("2","root");
+        fm.addOrSub("3","root");
+        fm.addOrSub("4","root");
+        fm.addOptionalSub("5","root");
+        fm.addOptionalSub("6","5");
+        fm.addXorSub("7","0");
+        fm.addXorSub("8","0");
+        fm.requires("8","3");
+        fm.excludes("8","4");
+       	fm.removeRequires("8","3");
+        fm.removeExcludes("8","4");
+        
+        fm.generateValidConfigs();
+      	if(card fm.allValidConfigurations=0)
+          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+          else (
+         	assertEqual(36,card fm.allValidConfigurations);
+          );   	
+       );
+     
+     private testMakeConfiguration: () ==> ()
+  	  testMakeConfiguration() ==
+       (
+        fm.addMandatorySub("0","root");
+        fm.addXorSub("1","root");
+        fm.addXorSub("2","root");
+        fm.addOrSub("3","root");
+        fm.addOrSub("4","root");
+        fm.addOptionalSub("5","root");      
+        fm.generateValidConfigs();
+      	if(card fm.allValidConfigurations=0)
+          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+          else (
+         	assertEqual(6,card fm.allValidConfigurations);
+          );
+ 				fm.makeConfiguration({"0","1","3","5"});
+ 				fm.makeConfiguration({"0","1","3","5"});    	
+       );     
+              
        
 	 public static main: () ==> ()
       main() ==
      (
-     	-- new FeatureModelTest().testGenerateValidConfigs();
        new FeatureModelTest().testMakeModel();
+       new FeatureModelTest().testGenerateValidConfigs();
+       new FeatureModelTest().testRemoveRequiresExcludes();
+       new FeatureModelTest().testMakeConfiguration();
       );
 functions
 -- TODO Define functiones here

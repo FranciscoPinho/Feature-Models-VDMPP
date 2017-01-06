@@ -140,7 +140,11 @@ operations
   	);
 	
 	
-  --Make configuration
+  --Generates configurations up the first level of the tree
+  --will calll generateValidConfigsAux for each of the possible configurations
+  --alongside their mustRequire(feature required by some feature in that configuration)
+  --and mustProcess(subfeatures with subfeatures that must be processed in order to make 
+  --a valid feature)
   public generateValidConfigs: () ==> ()
   	generateValidConfigs() == 
   	(
@@ -222,7 +226,11 @@ operations
  		 			generateValidConfigsAux(config,mustRequire,mustProcess);
  		 		);
  	 );
- 
+ 	 
+ 	-- receives a configuration and recursively goes through the remaining levels of death
+ 	-- initially checks if the configuration received is valid and adds it to the set of
+ 	-- all valid configurations of the model, returns when there are no more subfeatures to
+ 	-- process or the configuration was already deemed valid
   private generateValidConfigsAux: Configuration*set of Feature*set of Feature ==> ()
   	generateValidConfigsAux(config,mustRequire,mustProcess)==
   	(
@@ -281,11 +289,12 @@ operations
  		 								newMustProcess:= newMustProcess union {f};
  		 							);
  		 					); 
- 		 				generateValidConfigsAux(conf,newMustRequire,newMustProcess);
+ 		 				generateValidConfigsAux(conf,newMustRequire union mustRequire,newMustProcess);
  		 		);
   	); 
   );
-  
+  -- used to computer all the possible configurations based on an existing configuration
+  -- and a feature to process to add to the existing configuration
   private generateValidConfigsCompute:Configuration*Feature==>set of set of Feature
   	generateValidConfigsCompute(conf,toProcess)==
   	(
@@ -377,6 +386,23 @@ operations
 			return retValue;
 		);
  
+ 
+ 	--make configuration
+ 	public makeConfiguration: set of Feature`FeatureName ==> bool
+ 		makeConfiguration(list)==
+ 		(
+ 			dcl getFeaturesFromName: Configuration := {};
+ 			for all e in set list
+ 			do
+ 			(
+ 				getFeaturesFromName:=getFeaturesFromName union {get(e)};
+ 			);
+ 			if(getFeaturesFromName in set allValidConfigurations)
+ 			then return true
+ 			else return false;
+ 		)
+ 		pre card allValidConfigurations>0;
+	
 	--printing utilities mostly for debugging purposes
   public printConfiguration: Configuration ==> ()
   	printConfiguration(config)==
