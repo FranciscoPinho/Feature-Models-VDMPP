@@ -1,6 +1,9 @@
 package FeatureModels;
 
 import java.util.*;
+
+import javax.swing.JTextArea;
+
 import org.overture.codegen.runtime.*;
 
 @SuppressWarnings("all")
@@ -386,13 +389,13 @@ public class FeatureModel {
         + "}";
   }
   
-  public void printModel(Feature f,String Type) {
-	  printModelAux(f,Type);
+  public void printModel(Feature f,String Type, JTextArea consoleText) {
+	  printModelAux(f,Type,consoleText);
 	  if(f.mandatory.size()>0){
 		  for(Iterator iterator_32 = f.mandatory.iterator(); iterator_32.hasNext(); ) 
 		  {
 		      Feature sf = (Feature) iterator_32.next();
-		      printModel(sf,"mandatory");
+		      printModel(sf,"mandatory",consoleText);
 		  
 		  }
 	  }
@@ -400,7 +403,7 @@ public class FeatureModel {
 		  for(Iterator iterator_32 = f.xorGroup.iterator(); iterator_32.hasNext(); ) 
 		  {
 		      Feature sf = (Feature) iterator_32.next();
-		      printModel(sf,"xor");
+		      printModel(sf,"xor",consoleText);
 		  
 		  }
 	  }
@@ -408,7 +411,7 @@ public class FeatureModel {
 		  for(Iterator iterator_32 = f.orGroup.iterator(); iterator_32.hasNext(); ) 
 		  {
 		      Feature sf = (Feature) iterator_32.next();
-		      printModel(sf,"or");
+		      printModel(sf,"or",consoleText);
 		  
 		  }
 	  }
@@ -416,33 +419,32 @@ public class FeatureModel {
 		  for(Iterator iterator_32 = f.optional.iterator(); iterator_32.hasNext(); ) 
 		  {
 		      Feature sf = (Feature) iterator_32.next();
-		      printModel(sf,"optional");
+		      printModel(sf,"optional",consoleText);
 		  
 		  }
 	  }
   }
   
-  public void printModelAux(Feature f,String type){
+  public void printModelAux(Feature f,String type,JTextArea ct){
 	  String treeSeparator = "";
 	  for(int i=0;i<f.indegree.intValue();i++){
 		  	treeSeparator=treeSeparator + "    ";
 	      }
 	  switch(type){
 	  case "mandatory":
-		  System.out.println(treeSeparator+"(Xor)"+f.name);   
+		  ct.setText(ct.getText()+treeSeparator+"(M)"+f.name+"\n");  
 		  break;
 	  case "optional":
-		  System.out.println(treeSeparator+"(Xor)"+f.name);   
+		  ct.setText(ct.getText()+treeSeparator+"(O)"+f.name+"\n");   
 		  break;
 	  case "xor":
-		  System.out.println(treeSeparator+"(Xor)"+f.name);   
-		
+		  ct.setText(ct.getText()+treeSeparator+"(Xor)"+f.name+"\n"); 
 		  break;
 	  case "or":
-		  System.out.println(treeSeparator+"(Or)"+f.name);   
+		  ct.setText(ct.getText()+treeSeparator+"(Or)"+f.name+"\n"); 
 		  break;
 	  case "root":
-		  System.out.println("(R)"+f.name);
+		  ct.setText(ct.getText()+"(R)"+f.name+"\n");
 	  default:
 		  break;
 	  }
