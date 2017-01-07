@@ -27,7 +27,7 @@ operations
   			IO`println(")\n")
 		)
 	post expected = actual;
-	
+	/***** TEST CASES WITH VALID INPUTS ******/
   private testMakeModel: () ==> ()
     testMakeModel() ==
        (
@@ -126,7 +126,49 @@ operations
  				assertTrue(fm.get("1").indegree=1);
  				assertTrue(fm.get("root").indegree=0);				
        );    
-              
+    
+    
+    /***** TEST CASES WITH INVVALID INPUTS - RUN ONE AT A TIME******/
+    private testCyclicModel: () ==> ()
+  	  testCyclicModel() ==
+       (
+        fm.addMandatorySub("1","root");
+     		fm.addMandatorySub("root","root");		
+       );  
+    private testMakeInvalidConfiguration: () ==> ()
+  	  testMakeInvalidConfiguration() ==
+       (
+        fm.addMandatorySub("0","root");
+        fm.addXorSub("1","root");
+        fm.addXorSub("2","root");
+        fm.addOrSub("3","root");
+        fm.addOrSub("4","root");
+        fm.addOptionalSub("5","root");      
+        fm.generateValidConfigs();
+      	if(card fm.allValidConfigurations=0)
+          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+          else (
+         	assertEqual(12,card fm.allValidConfigurations);
+          );
+ 				-- cannot pick both xorGroup options, only one of those features allowed
+ 				assertTrue(fm.makeConfiguration({"root","0","1","2"}));
+       );   
+    private testSelectNonExistant: () ==> ()
+  	  testSelectNonExistant() ==
+       (
+        fm.addMandatorySub("1","root");
+     		IO`println(fm.get("2").name);		
+       );
+     private testExcludeSubFeature: () ==> ()
+  	  testExcludeSubFeature() ==
+       (
+       	fm.addMandatorySub("0","root");
+        fm.addXorSub("1","root");
+        fm.addXorSub("2","root");
+        fm.addOrSub("3","root");
+        fm.addOrSub("4","root");
+        fm.excludes("2","root");	
+       );                
        
 	 public static main: () ==> ()
       main() ==
@@ -137,6 +179,9 @@ operations
        new FeatureModelTest().testRemoveRequiresExcludes();
        new FeatureModelTest().testMakeConfiguration();
       );
+    
+      
+      
 functions
 -- TODO Define functiones here
 traces
