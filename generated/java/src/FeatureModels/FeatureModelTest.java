@@ -160,7 +160,6 @@ public class FeatureModelTest {
   }
 
   public static void main() {
-
     new FeatureModelTest().testIndegreeCalculation();
     new FeatureModelTest().testMakeModel();
     new FeatureModelTest().testGenerateValidConfigs();
