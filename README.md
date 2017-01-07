@@ -2,7 +2,7 @@
 
 #Feature Models
 
-A formal modelling project, objective is to build a meta model to incrementally build feature models, validate configurations and generate all possible valid configurations of a feature model. This is done by first creating a VDM++ model and then automatically generate Java Code.
+A formal modelling project, objective is to build a meta model to incrementally build feature models, validate configurations and generate all possible valid configurations of a feature model. This is done by first creating a VDM++ model and then automatically generating Java Code with Overture.
 A simple GUI was also developed to interact with the model.
 
 ##Use Cases
