@@ -78,7 +78,6 @@ public class FeatureModel {
   }
 
   public void excludes(final String excludee, final String excluder) {
-
     if (!(SetUtil.inSet(get(excludee), get(rootName).mandatory))) {
       get(excluder).addExclude(get(excludee));
     }
@@ -449,5 +448,59 @@ public class FeatureModel {
 		  break;
 	  }
 	  
+  }
+  
+  public void printConstraints(Feature f,JTextArea consoleText) {
+	  
+	  if(f.requires.size()>0){
+		  for(Iterator iterator_32 = f.requires.iterator(); iterator_32.hasNext(); ) 
+		  {
+		      Feature sf = (Feature) iterator_32.next();
+		      printConstraintsAux(f,sf,"requires",consoleText);
+		  
+		  }
+	  }
+	  if(f.excludes.size()>0){
+		  for(Iterator iterator_32 = f.excludes.iterator(); iterator_32.hasNext(); ) 
+		  {
+		      Feature sf = (Feature) iterator_32.next();
+		      printConstraintsAux(f,sf,"excludes",consoleText);
+		  }
+	  }
+	  
+	  if(f.getSubFeatures().size()>0){
+		  for(Iterator iterator_32 = f.getSubFeatures().iterator(); iterator_32.hasNext(); ) 
+		  {
+		      Feature sf = (Feature) iterator_32.next();
+		      printConstraints(sf,consoleText);
+		  
+		  }
+	  }
+	
+  }
+  
+  public void printConstraintsAux(Feature f,Feature f2,String type,JTextArea ct){
+	  	if(type=="requires")
+		  ct.setText(ct.getText()+f.name+" requires "+ f2.name+"\n"); 
+	  	if(type=="excludes")
+	  	  ct.setText(ct.getText()+f.name+" excludes "+ f2.name+"\n"); 
+  }
+  
+  public void javaPrintConfiguration(final VDMSet config,JTextArea ct) {
+	  	String c="";
+	    for (Iterator iterator_30 = config.iterator(); iterator_30.hasNext(); ) {
+	      Feature f = (Feature) iterator_30.next();
+	      c=c+f.name+" ";
+	    }
+	    ct.setText(ct.getText()+"Configuration: "+c+"\n");
+  }
+
+  public void javaPrintAllConfigurations(JTextArea ct) {
+	  ct.setText(ct.getText()+"\n Printing all Valid Configurations \n");
+	  for (Iterator iterator_32 = allValidConfigurations.iterator(); iterator_32.hasNext(); ) {
+	      VDMSet f = (VDMSet) iterator_32.next();
+	      javaPrintConfiguration(Utils.copy(f),ct);
+	    }
+	  ct.setText(ct.getText()+"\n ------------------------------------- \n");
   }
 }

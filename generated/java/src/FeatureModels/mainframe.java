@@ -72,23 +72,23 @@ public class mainframe extends JFrame {
 		JButton addXor = new JButton("Add Xor");
 		buttonsPane.add(addXor);
 
-		JButton button_6 = new JButton("Add Requires");
-		buttonsPane.add(button_6);
+		JButton addReq = new JButton("Add Requires");
+		buttonsPane.add(addReq);
 
-		JButton button_7 = new JButton("Add Excludes");
-		buttonsPane.add(button_7);
+		JButton addExc = new JButton("Add Excludes");
+		buttonsPane.add(addExc);
 
-		JButton button_8 = new JButton("Remove Requires");
-		buttonsPane.add(button_8);
+		JButton remReq = new JButton("Remove Requires");
+		buttonsPane.add(remReq);
 
-		JButton button_9 = new JButton("Remove Excludes");
-		buttonsPane.add(button_9);
+		JButton remExc = new JButton("Remove Excludes");
+		buttonsPane.add(remExc);
 
-		JButton button_10 = new JButton("Gen Configurations");
-		buttonsPane.add(button_10);
+		JButton gen = new JButton("Gen Configurations");
+		buttonsPane.add(gen);
 
-		JButton button_11 = new JButton("Make Config");
-		buttonsPane.add(button_11);
+		JButton makeConf = new JButton("Make Config");
+		buttonsPane.add(makeConf);
 
 		JButton button_2 = new JButton("Print Model");
 		buttonsPane.add(button_2);
@@ -123,7 +123,8 @@ public class mainframe extends JFrame {
 			consoleText
 					.setText("Printing Model\n----------------------------------------------------\n");
 			fm.printModel(fm.get(fm.getRootName()), "root", consoleText);
-			consoleText.setText(consoleText.getText()
+			fm.printConstraints(fm.get(fm.getRootName()), consoleText);
+			consoleText.setText("\n"+consoleText.getText()
 					+ "----------------------------------------------------\n");
 		});
 
@@ -145,11 +146,51 @@ public class mainframe extends JFrame {
 			addSubFeature("xor");
 		});
 
-		button_6.addActionListener(e -> {
-			consoleText
-					.setText("----------------------------------------------------\n");
+		addReq.addActionListener(e -> {
+			if (fm == null)
+				return;
+			addRequiresExcludes("requires");
+		});
+		
+		addExc.addActionListener(e -> {
+			if (fm == null)
+				return;
+			addRequiresExcludes("excludes");
 		});
 
+		remReq.addActionListener(e -> {
+			if (fm == null)
+				return;
+			addRequiresExcludes("remrequires");
+		});
+		
+		remExc.addActionListener(e -> {
+			if (fm == null)
+				return;
+			addRequiresExcludes("remexcludes");
+		});
+		
+		gen.addActionListener(e -> {
+			if (fm == null)
+				return;
+			fm.generateValidConfigs();
+			fm.printAllConfigurations();
+			consoleText
+			.setText("Printing Model\n----------------------------------------------------\n");
+			fm.printModel(fm.get(fm.getRootName()), "root", consoleText);
+			fm.printConstraints(fm.get(fm.getRootName()), consoleText);
+			consoleText.setText("\n"+consoleText.getText()
+			+ "----------------------------------------------------\n");
+			fm.javaPrintAllConfigurations(consoleText);
+		});
+		
+		makeConf.addActionListener(e -> {
+			if (fm == null)
+				return;
+			addRequiresExcludes("requires");
+		});
+		
+		
 		// FINALIZE THE FRAME
 		frame.pack();
 		frame.setVisible(true);
@@ -187,8 +228,63 @@ public class mainframe extends JFrame {
 				consoleText
 						.setText("Added new feature\n----------------------------------------------------\n");
 				fm.printModel(fm.get(fm.getRootName()), "root", consoleText);
+				fm.printConstraints(fm.get(fm.getRootName()), consoleText);
 				consoleText
-						.setText(consoleText.getText()
+						.setText("\n"+consoleText.getText()
+								+ "----------------------------------------------------\n");
+
+			}
+		}
+	}
+	
+	void addRequiresExcludes(String c) 
+	{
+		JTextField newF = new JTextField(5);
+		JTextField parentF = new JTextField(5);
+		JPanel myPanel = new JPanel();
+		if(c=="requires" || c=="remrequires"){
+			
+			myPanel.add(new JLabel("Requirer:"));
+			myPanel.add(parentF);
+			myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+			myPanel.add(new JLabel("Requiree:"));
+			myPanel.add(newF);	
+		}
+		else {
+			myPanel.add(new JLabel("Excluder:"));
+			myPanel.add(parentF);
+			myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+			myPanel.add(new JLabel("Excludee:"));
+			myPanel.add(newF);		
+		}
+		
+		
+		int result = JOptionPane.showConfirmDialog(null, myPanel,
+				"Require/Exclude",
+				JOptionPane.OK_CANCEL_OPTION);
+		if (result == JOptionPane.OK_OPTION) {
+			if (fm.get(parentF.getText()) != null
+					&& fm.get(newF.getText()) != null) {
+				switch (c) {
+				case "requires":
+					fm.requires(newF.getText(), parentF.getText());
+					break;
+				case "excludes":
+					fm.excludes(newF.getText(), parentF.getText());
+					break;
+				case "remrequires":
+					fm.removeRequires(newF.getText(), parentF.getText());
+					break;
+				case "remexcludes":
+					fm.removeExcludes(newF.getText(), parentF.getText());
+					break;
+				}
+				consoleText
+						.setText("Printing Updated Model\n----------------------------------------------------\n");
+				fm.printModel(fm.get(fm.getRootName()), "root", consoleText);
+				fm.printConstraints(fm.get(fm.getRootName()), consoleText);
+				consoleText
+						.setText("\n"+consoleText.getText()
 								+ "----------------------------------------------------\n");
 
 			}
