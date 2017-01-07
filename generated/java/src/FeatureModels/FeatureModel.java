@@ -125,7 +125,6 @@ public class FeatureModel {
     VDMSet currentConfigs = SetUtil.set(SetUtil.set(get(rootName)));
     VDMSet orGroupOptions = SetUtil.set(SetUtil.set());
     VDMSet xorGroupOptions = SetUtil.set(SetUtil.set());
-    VDMSet mandatoryGroup = SetUtil.set(SetUtil.set());
     VDMSet optionalOptions = SetUtil.set(SetUtil.set());
     allValidConfigurations = SetUtil.set(SetUtil.set());
     if (!(Utils.equals(get(rootName).xorGroup.size(), 0L))) {
@@ -145,12 +144,7 @@ public class FeatureModel {
     }
 
     if (!(Utils.equals(get(rootName).mandatory.size(), 0L))) {
-      for (Iterator iterator_18 = get(rootName).mandatory.iterator(); iterator_18.hasNext(); ) {
-        Feature f = (Feature) iterator_18.next();
-        mandatoryGroup = SetUtil.union(Utils.copy(mandatoryGroup), SetUtil.set(SetUtil.set(f)));
-      }
-      mandatoryGroup = SetUtil.diff(Utils.copy(mandatoryGroup), SetUtil.set(SetUtil.set()));
-      currentConfigs = combinePossibilities(Utils.copy(currentConfigs), Utils.copy(mandatoryGroup));
+    	 currentConfigs = uniteSets(Utils.copy(currentConfigs), get(rootName).mandatory);
     }
 
     if (!(Utils.equals(get(rootName).optional.size(), 0L))) {
@@ -258,7 +252,6 @@ public class FeatureModel {
     VDMSet currentConfigs = SetUtil.set(Utils.copy(conf));
     VDMSet orGroupOptions = SetUtil.set(SetUtil.set());
     VDMSet xorGroupOptions = SetUtil.set(SetUtil.set());
-    VDMSet mandatoryGroup = SetUtil.set(SetUtil.set());
     VDMSet optionalOptions = SetUtil.set(SetUtil.set());
     if (!(Utils.equals(toProcess.xorGroup.size(), 0L))) {
       for (Iterator iterator_24 = toProcess.xorGroup.iterator(); iterator_24.hasNext(); ) {
@@ -277,12 +270,7 @@ public class FeatureModel {
     }
 
     if (!(Utils.equals(toProcess.mandatory.size(), 0L))) {
-      for (Iterator iterator_25 = toProcess.mandatory.iterator(); iterator_25.hasNext(); ) {
-        Feature f = (Feature) iterator_25.next();
-        mandatoryGroup = SetUtil.union(Utils.copy(mandatoryGroup), SetUtil.set(SetUtil.set(f)));
-      }
-      mandatoryGroup = SetUtil.diff(Utils.copy(mandatoryGroup), SetUtil.set(SetUtil.set()));
-      currentConfigs = combinePossibilities(Utils.copy(currentConfigs), Utils.copy(mandatoryGroup));
+    	 currentConfigs = uniteSets(Utils.copy(currentConfigs), toProcess.mandatory);
     }
 
     if (!(Utils.equals(toProcess.optional.size(), 0L))) {
@@ -330,6 +318,20 @@ public class FeatureModel {
     return Utils.copy(retValue);
   }
 
+  public VDMSet uniteSets(final VDMSet s1, final VDMSet s2) {
+
+	    VDMSet retValue = SetUtil.set(SetUtil.set());
+	    for (Iterator iterator_24 = s1.iterator(); iterator_24.hasNext(); ) {
+	      VDMSet ps = (VDMSet) iterator_24.next();
+	      retValue =
+	          SetUtil.union(
+	              Utils.copy(retValue), SetUtil.set(SetUtil.union(Utils.copy(ps), Utils.copy(s2))));
+	    }
+	    retValue = SetUtil.diff(Utils.copy(retValue), SetUtil.set(SetUtil.set()));
+	    return Utils.copy(retValue);
+  }
+	  
+	  
   public Boolean makeConfiguration(final VDMSet list) {
 
     VDMSet getFeaturesFromName = SetUtil.set();

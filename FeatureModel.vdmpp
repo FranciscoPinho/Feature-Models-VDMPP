@@ -152,7 +152,6 @@ operations
  		 		dcl currentConfigs: set of Configuration:= {{get(rootName)}};
  		 		dcl orGroupOptions : set of Configuration:= {{}};
  		 		dcl xorGroupOptions : set of Configuration:= {{}};
- 		 		dcl mandatoryGroup : set of Configuration:= {{}};
  		 		dcl optionalOptions : set of Configuration:= {{}};
  		 		allValidConfigurations:= {{}};
  		 		
@@ -181,15 +180,8 @@ operations
  		 		if(card get(rootName).mandatory <> 0)
  		 		then
  		 		(
- 		 			for all f in set get(rootName).mandatory
- 		 				do
- 		 				(
- 		 					mandatoryGroup:=mandatoryGroup union {{f}};
- 		 				);
- 		 			mandatoryGroup := mandatoryGroup \ {{}};
- 		 			currentConfigs:=combinePossibilities(currentConfigs,mandatoryGroup);	
+ 		 			currentConfigs:=uniteSets(currentConfigs,get(rootName).mandatory);	
  		 		);
- 		 		
  		 		
  		 		if(card get(rootName).optional <> 0)
  		 		then
@@ -301,7 +293,6 @@ operations
   			dcl currentConfigs: set of Configuration:= {conf};
  		 		dcl orGroupOptions : set of Configuration:= {{}};
  		 		dcl xorGroupOptions : set of Configuration:= {{}};
- 		 		dcl mandatoryGroup : set of Configuration:= {{}};
  		 		dcl optionalOptions : set of Configuration:= {{}};
 		 		
  		 		if(card toProcess.xorGroup <> 0)
@@ -328,13 +319,7 @@ operations
  		 		if(card toProcess.mandatory <> 0)
  		 		then
  		 		(
- 		 			for all f in set toProcess.mandatory
- 		 			do
- 		 			(
- 		 				mandatoryGroup:=mandatoryGroup union {{f}};
- 		 			);
- 		 			mandatoryGroup := mandatoryGroup \ {{}};
- 		 			currentConfigs:=combinePossibilities(currentConfigs,mandatoryGroup);
+ 		 			currentConfigs:=uniteSets(currentConfigs,toProcess.mandatory);
  		 		);
  		 	
  		 		if(card toProcess.optional <> 0)
@@ -369,6 +354,21 @@ operations
   		return true;
   	);
   
+  -- takes a set of sets,s1 and set s2, and unites all of s2 into each set of s1 
+  public uniteSets: set of set of Feature*set of Feature==>set of set of Feature
+  	uniteSets(s1,s2)==
+  	(
+  		dcl retValue : set of set of Feature := {{}};
+			for all ps in set s1
+			do
+			(
+					retValue:=retValue union {ps union s2};
+			);
+			retValue:=retValue \ {{}};
+			return retValue;
+  	);
+  	
+  -- for all elements x,x2 in poss and poss2 respecively returns all the combinations between x and x2
 	public combinePossibilities : set of set of Feature*set of set of Feature==>set of set of Feature
 		combinePossibilities(poss1,poss2)==
 		(

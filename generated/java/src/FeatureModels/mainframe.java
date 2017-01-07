@@ -4,20 +4,29 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
+import org.overture.codegen.runtime.SetUtil;
+import org.overture.codegen.runtime.Utils;
+import org.overture.codegen.runtime.VDMSet;
+
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.*;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 
 /**
  * The Class mainframe - Main GUI.
  */
-public class mainframe extends JFrame {
+public class mainframe extends JFrame implements ItemListener{
 
 	/** The console text. */
 	private JTextArea consoleText;
 
 	private FeatureModel fm = null;
+	
+	private VDMSet cc = SetUtil.set();
 
 	/**
 	 * Instantiates a new mainframe and initializes all the containers as well
@@ -174,7 +183,6 @@ public class mainframe extends JFrame {
 			if (fm == null)
 				return;
 			fm.generateValidConfigs();
-			fm.printAllConfigurations();
 			consoleText
 			.setText("Printing Model\n----------------------------------------------------\n");
 			fm.printModel(fm.get(fm.getRootName()), "root", consoleText);
@@ -184,10 +192,28 @@ public class mainframe extends JFrame {
 			fm.javaPrintAllConfigurations(consoleText);
 		});
 		
-		makeConf.addActionListener(e -> {
+		makeConf.addActionListener (e -> {
 			if (fm == null)
 				return;
-			addRequiresExcludes("requires");
+			cc = SetUtil.set();
+			//Put the check boxes in a column in a panel
+	        JPanel checkPanel = new JPanel(new GridLayout(0, 1));
+
+	        for (Iterator iterator_16 = fm.featureTree.iterator(); iterator_16.hasNext(); ) {
+	          Feature f = (Feature) iterator_16.next();
+	          JCheckBox box = new JCheckBox(f.name);
+	          box.addItemListener(this);
+	          checkPanel.add(box);
+	          }
+	    	int result = JOptionPane.showConfirmDialog(null, checkPanel,
+					"Make your configuration",
+					JOptionPane.OK_CANCEL_OPTION);
+			if (result == JOptionPane.OK_OPTION) {
+					if(fm.makeConfiguration(cc))	
+					consoleText.setText("Configuration is valid\n\n");
+					else consoleText
+					.setText("Configuration is invalid\n\n");
+				}
 		});
 		
 		
@@ -195,7 +221,17 @@ public class mainframe extends JFrame {
 		frame.pack();
 		frame.setVisible(true);
 	}
-
+	  /** Listens to the check boxes. */
+    public void itemStateChanged(ItemEvent e) {
+        Object source = e.getItemSelectable();
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+        	 cc=SetUtil.union(Utils.copy(cc), SetUtil.set(((JCheckBox)source).getText()));
+        }
+        if (e.getStateChange() == ItemEvent.DESELECTED) {
+        	cc=SetUtil.diff(Utils.copy(cc), SetUtil.set(((JCheckBox)source).getText()));
+        }
+    }
+    
 	void addSubFeature(String c) {
 		JTextField newF = new JTextField(5);
 		JTextField parentF = new JTextField(5);
