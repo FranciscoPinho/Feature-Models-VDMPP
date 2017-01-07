@@ -32,7 +32,7 @@ public class FeatureModel {
         return f;
       }
     }
-    return new Feature(fname);
+    return null;
   }
 
   public void addFeature(final String fname) {
