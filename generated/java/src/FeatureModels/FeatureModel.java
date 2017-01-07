@@ -33,7 +33,6 @@ public class FeatureModel {
   }
 
   public void addFeature(final String fname) {
-
     Feature f = new Feature(fname);
     featureTree = SetUtil.union(Utils.copy(featureTree), SetUtil.set(f));
   }
@@ -369,6 +368,9 @@ public class FeatureModel {
       printConfiguration(Utils.copy(f));
     }
   }
+  public String getRootName() {
+	  return rootName;
+  }
 
   public FeatureModel() {}
 
@@ -382,5 +384,68 @@ public class FeatureModel {
         + ", allValidConfigurations := "
         + Utils.toString(allValidConfigurations)
         + "}";
+  }
+  
+  public void printModel(Feature f,String Type) {
+	  printModelAux(f,Type);
+	  if(f.mandatory.size()>0){
+		  for(Iterator iterator_32 = f.mandatory.iterator(); iterator_32.hasNext(); ) 
+		  {
+		      Feature sf = (Feature) iterator_32.next();
+		      printModel(sf,"mandatory");
+		  
+		  }
+	  }
+	  if(f.xorGroup.size()>0){
+		  for(Iterator iterator_32 = f.xorGroup.iterator(); iterator_32.hasNext(); ) 
+		  {
+		      Feature sf = (Feature) iterator_32.next();
+		      printModel(sf,"xor");
+		  
+		  }
+	  }
+	  if(f.orGroup.size()>0){
+		  for(Iterator iterator_32 = f.orGroup.iterator(); iterator_32.hasNext(); ) 
+		  {
+		      Feature sf = (Feature) iterator_32.next();
+		      printModel(sf,"or");
+		  
+		  }
+	  }
+	  if(f.optional.size()>0){
+		  for(Iterator iterator_32 = f.optional.iterator(); iterator_32.hasNext(); ) 
+		  {
+		      Feature sf = (Feature) iterator_32.next();
+		      printModel(sf,"optional");
+		  
+		  }
+	  }
+  }
+  
+  public void printModelAux(Feature f,String type){
+	  String treeSeparator = "";
+	  for(int i=0;i<f.indegree.intValue();i++){
+		  	treeSeparator=treeSeparator + "    ";
+	      }
+	  switch(type){
+	  case "mandatory":
+		  System.out.println(treeSeparator+"(Xor)"+f.name);   
+		  break;
+	  case "optional":
+		  System.out.println(treeSeparator+"(Xor)"+f.name);   
+		  break;
+	  case "xor":
+		  System.out.println(treeSeparator+"(Xor)"+f.name);   
+		
+		  break;
+	  case "or":
+		  System.out.println(treeSeparator+"(Or)"+f.name);   
+		  break;
+	  case "root":
+		  System.out.println("(R)"+f.name);
+	  default:
+		  break;
+	  }
+	  
   }
 }

@@ -1,6 +1,7 @@
 package FeatureModels;
 
 import java.util.*;
+
 import org.overture.codegen.runtime.*;
 
 @SuppressWarnings("all")
@@ -183,8 +184,6 @@ public class Feature {
         + Utils.toString(requires)
         + ", excludes := "
         + Utils.toString(excludes)
-        + ", true_self := "
-        + Utils.toString(true_self)
         + "}";
   }
 }
