@@ -6,6 +6,7 @@ import org.overture.codegen.runtime.*;
 @SuppressWarnings("all")
 public class FeatureModelTest {
   private FeatureModel fm = new FeatureModel("root");
+  private FeatureModel fm2 = new FeatureModel("E-shop");
 
   protected void assertTrue(final Boolean arg) {
 
@@ -41,24 +42,77 @@ public class FeatureModelTest {
 
   private void testGenerateValidConfigs() {
 
-    fm.addMandatorySub("0", "root");
-    fm.addXorSub("1", "root");
-    fm.addXorSub("2", "root");
-    fm.addOrSub("3", "root");
-    fm.addOrSub("4", "root");
-    fm.addOptionalSub("5", "root");
-    fm.addOptionalSub("6", "5");
-    fm.addXorSub("7", "0");
-    fm.addXorSub("8", "0");
-    fm.requires("8", "3");
-    fm.excludes("8", "4");
-    fm.generateValidConfigs();
+    fm2.addMandatorySub("Payment", "E-shop");
+    fm2.addMandatorySub("Catalogue", "E-shop");
+    fm2.addMandatorySub("Security", "E-shop");
+    fm2.addXorSub("High", "Security");
+    fm2.addXorSub("Standard", "Security");
+    fm2.addOrSub("Credit Card", "Payment");
+    fm2.addOrSub("Bank Transfer", "Payment");
+    fm2.addOptionalSub("Search", "E-shop");
+    fm2.requires("High", "Credit Card");
+    fm2.generateValidConfigs();
     if (Utils.equals(fm.allValidConfigurations.size(), 0L)) {
       IO.println("Error:Invalid Model, couldnt generate a single valid Configuration");
     } else {
       IO.println("|!|!|!|PRINTING ALL THE VALID CONFIGS|!|!|!|");
-      fm.printAllConfigurations();
-      assertEqual(12L, fm.allValidConfigurations.size());
+      fm2.printAllConfigurations();
+      assertTrue(
+          fm2.makeConfiguration(
+              SetUtil.set(
+                  "E-shop",
+                  "Catalogue",
+                  "Payment",
+                  "Security",
+                  "Credit Card",
+                  "Bank Transfer",
+                  "High")));
+      assertTrue(
+          fm2.makeConfiguration(
+              SetUtil.set("E-shop", "Catalogue", "Payment", "Security", "Credit Card", "High")));
+      assertTrue(
+          fm2.makeConfiguration(
+              SetUtil.set(
+                  "E-shop", "Catalogue", "Payment", "Security", "Bank Transfer", "Standard")));
+      assertTrue(
+          fm2.makeConfiguration(
+              SetUtil.set("E-shop", "Catalogue", "Payment", "Security", "Bank Transfer", "High")));
+      assertTrue(
+          fm2.makeConfiguration(
+              SetUtil.set(
+                  "E-shop",
+                  "Catalogue",
+                  "Payment",
+                  "Security",
+                  "Search",
+                  "Credit Card",
+                  "Bank Transfer",
+                  "High")));
+      assertTrue(
+          fm2.makeConfiguration(
+              SetUtil.set(
+                  "E-shop", "Catalogue", "Payment", "Security", "Search", "Credit Card", "High")));
+      assertTrue(
+          fm2.makeConfiguration(
+              SetUtil.set(
+                  "E-shop",
+                  "Catalogue",
+                  "Payment",
+                  "Security",
+                  "Search",
+                  "Bank Transfer",
+                  "Standard")));
+      assertTrue(
+          fm2.makeConfiguration(
+              SetUtil.set(
+                  "E-shop",
+                  "Catalogue",
+                  "Payment",
+                  "Security",
+                  "Search",
+                  "Bank Transfer",
+                  "High")));
+      assertEqual(8L, fm2.allValidConfigurations.size());
       IO.println("|!|!|!|END PRINTING ALL THE VALID CONFIGS|!|!|!|");
     }
   }
@@ -160,7 +214,7 @@ public class FeatureModelTest {
   }
 
   public static void main() {
-    new FeatureModelTest().testIndegreeCalculation();
+	 	new FeatureModelTest().testIndegreeCalculation();
     new FeatureModelTest().testMakeModel();
     new FeatureModelTest().testGenerateValidConfigs();
     new FeatureModelTest().testRemoveRequiresExcludes();
@@ -171,6 +225,11 @@ public class FeatureModelTest {
 
   public String toString() {
 
-    return "FeatureModelTest{" + "fm := " + Utils.toString(fm) + "}";
+    return "FeatureModelTest{"
+        + "fm := "
+        + Utils.toString(fm)
+        + ", fm2 := "
+        + Utils.toString(fm2)
+        + "}";
   }
 }

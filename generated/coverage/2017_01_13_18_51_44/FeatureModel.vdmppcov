@@ -270,19 +270,22 @@ operations
  		 				if(f.name<>rootName)
  		 					then
  		 					(
- 		 						if(card f.requires>0 and f not in set mustRequire)
+ 		 						if(card f.requires>0)
  		 							then
  		 							(
- 		 								newMustRequire:= newMustRequire union f.requires;
+ 		 								for all reqs in set f.requires
+ 		 								do if(reqs not in set mustRequire)
+ 		 								then newMustRequire:= newMustRequire union {reqs};	
  		 							);
  								if(card f.getSubFeatures()>0 and f not in set mustProcess)
  		 							then
  		 							(
  		 								newMustProcess:= newMustProcess union {f};
  		 							);
- 		 					); 
- 		 				generateValidConfigsAux(conf,newMustRequire union mustRequire,newMustProcess);
+ 		 					);
+ 		 					-- USED TO BE HERE
  		 		);
+ 		 			generateValidConfigsAux(conf,mustRequire union newMustRequire,newMustProcess);
   	); 
   );
   -- used to computer all the possible configurations based on an existing configuration
@@ -407,12 +410,11 @@ operations
   public printConfiguration: Configuration ==> ()
   	printConfiguration(config)==
   	(
-  		IO`println("-----Current Configuration-----");
   		for all f in set config 
   		do (
-  		IO`println(f.name);
+  		IO`print(f.name);
+  		IO`print(" - ");
   		);
-  		IO`println("-----End of Current Configuration-----");	
   	 );
    public printCombinations: set of Configuration ==> ()
   	printCombinations(configs)==
@@ -428,6 +430,7 @@ operations
   		for all f in set allValidConfigurations 
   		do (
   			printConfiguration(f);
+  			IO`println("");
   		);	
   	 );
  	 		

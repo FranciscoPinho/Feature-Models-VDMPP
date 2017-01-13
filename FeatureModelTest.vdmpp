@@ -5,6 +5,7 @@ values
 -- TODO Define values here
 instance variables
 	fm : FeatureModel := new FeatureModel("root");
+	fm2: FeatureModel := new FeatureModel("E-shop");
 operations
 	
 	-- Simulates assertion checking by reducing it to pre-condition checking.
@@ -59,25 +60,32 @@ operations
    private testGenerateValidConfigs: () ==> ()
   	  testGenerateValidConfigs() ==
        (
-         	fm.addMandatorySub("0","root");
-          fm.addXorSub("1","root");
-          fm.addXorSub("2","root");
-          fm.addOrSub("3","root");
-          fm.addOrSub("4","root");
-          fm.addOptionalSub("5","root");
-          fm.addOptionalSub("6","5");
-          fm.addXorSub("7","0");
-          fm.addXorSub("8","0");
-          fm.requires("8","3");
-          fm.excludes("8","4");
-        fm.generateValidConfigs();
-      	if(card fm.allValidConfigurations=0)
-          then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
-          else (
-         	IO`println("|!|!|!|PRINTING ALL THE VALID CONFIGS|!|!|!|");
-         	fm.printAllConfigurations();
-         	assertEqual(12,card fm.allValidConfigurations);
-          IO`println("|!|!|!|END PRINTING ALL THE VALID CONFIGS|!|!|!|");
+         	fm2.addMandatorySub("Payment","E-shop");
+         	fm2.addMandatorySub("Catalogue","E-shop");
+         	fm2.addMandatorySub("Security","E-shop");
+          fm2.addXorSub("High","Security");
+          fm2.addXorSub("Standard","Security");
+          fm2.addOrSub("Credit Card","Payment");
+          fm2.addOrSub("Bank Transfer","Payment");
+          fm2.addOptionalSub("Search","E-shop");
+          fm2.requires("High","Credit Card");
+        	fm2.generateValidConfigs();
+      		if(card fm.allValidConfigurations=0)
+         	 then IO`println("Error:Invalid Model, couldnt generate a single valid Configuration")
+         	 else 
+         	 (
+         		IO`println("|!|!|!|PRINTING ALL THE VALID CONFIGS|!|!|!|");
+         		fm2.printAllConfigurations();
+         		assertTrue(fm2.makeConfiguration({"E-shop","Catalogue","Payment","Security","Credit Card","Bank Transfer","High"}));
+         		assertTrue(fm2.makeConfiguration({"E-shop","Catalogue","Payment","Security","Credit Card","High"}));
+         		assertTrue(fm2.makeConfiguration({"E-shop","Catalogue","Payment","Security","Bank Transfer","Standard"}));
+         		assertTrue(fm2.makeConfiguration({"E-shop","Catalogue","Payment","Security","Bank Transfer","High"}));
+         		assertTrue(fm2.makeConfiguration({"E-shop","Catalogue","Payment","Security","Search","Credit Card","Bank Transfer","High"}));
+         		assertTrue(fm2.makeConfiguration({"E-shop","Catalogue","Payment","Security","Search","Credit Card","High"}));
+         		assertTrue(fm2.makeConfiguration({"E-shop","Catalogue","Payment","Security","Search","Bank Transfer","Standard"}));
+         		assertTrue(fm2.makeConfiguration({"E-shop","Catalogue","Payment","Security","Search","Bank Transfer","High"}));
+         		assertEqual(8,card fm2.allValidConfigurations);
+          	IO`println("|!|!|!|END PRINTING ALL THE VALID CONFIGS|!|!|!|");
           );   	
        );
     --Test requirement - generate valid configurations 

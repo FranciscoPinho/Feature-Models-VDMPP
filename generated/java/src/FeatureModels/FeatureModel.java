@@ -217,9 +217,11 @@ public class FeatureModel {
           Boolean andResult_13 = false;
 
           if (f.requires.size() > 0L) {
-            if (!(SetUtil.inSet(f, mustRequire))) {
-              andResult_13 = true;
-            }
+             for (Iterator iterator_24 = f.requires.iterator(); iterator_24.hasNext(); ) {
+              Feature reqs = (Feature) iterator_24.next();
+              if (!(SetUtil.inSet(reqs, mustRequire))) {
+                newMustRequire = SetUtil.union(Utils.copy(newMustRequire), SetUtil.set(reqs));
+              }
           }
 
           if (andResult_13) {
@@ -238,13 +240,14 @@ public class FeatureModel {
             newMustProcess = SetUtil.union(Utils.copy(newMustProcess), SetUtil.set(f));
           }
         }
-
-        generateValidConfigsAux(
+        }
+      }
+     generateValidConfigsAux(
             Utils.copy(conf),
             SetUtil.union(Utils.copy(newMustRequire), Utils.copy(mustRequire)),
             Utils.copy(newMustProcess));
-      }
     }
+      
   }
 
   private VDMSet generateValidConfigsCompute(final VDMSet conf, final Feature toProcess) {
