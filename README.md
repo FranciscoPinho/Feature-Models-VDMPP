@@ -12,6 +12,8 @@ A simple GUI was also developed to interact with the model.
 ##Example
 ![capture](https://cloud.githubusercontent.com/assets/9083330/21942298/68af4a30-d9c4-11e6-906d-fb46d02c2429.PNG)
 
+![capture2](https://cloud.githubusercontent.com/assets/9083330/21942376/c152c018-d9c4-11e6-8643-52fc0aa6d7f0.PNG)
+
 
 This text representation is equal to:
 
