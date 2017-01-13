@@ -10,7 +10,7 @@ A simple GUI was also developed to interact with the model.
 
 
 ##Example
-![featurem](https://cloud.githubusercontent.com/assets/9083330/21742951/e87a9ebe-d4f0-11e6-845b-b25034120bf1.PNG)
+![capture](https://cloud.githubusercontent.com/assets/9083330/21942298/68af4a30-d9c4-11e6-906d-fb46d02c2429.PNG)
 
 
 This text representation is equal to:
